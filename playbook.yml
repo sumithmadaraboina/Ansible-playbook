@@ -1,0 +1,55 @@
+---
+- hosts: all
+  user: root
+  become: yes
+  vars:
+    a:
+      - git
+      - maven
+  tasks:
+    - name: package installation
+      yum:
+        name: "{{a}}"
+        state: present
+
+    - name: Clone or pull the code from GitHub
+      git:
+        repo: https://github.com/sumithmadaraboina/live01.git
+        dest: /root/live01
+        clone: yes
+        update: yes
+
+    - name: bulid the code using maven
+      shell: cd /root/live01 && mvn clean package
+
+    - name: install java
+      yum:
+        name: java
+        state: present
+    - name: create directory
+      file:
+        path: /root/tomcat/
+        state: directory
+    - name: download and unarchive tomcat
+      unarchive:
+        src: https://dlcdn.apache.org/tomcat/tomcat-9/v9.0.84/bin/apache-tomcat-9.0.84.tar.gz
+        dest: /root/tomcat
+        remote_src: yes
+    - name: run tomcat
+      shell: nohup ./startup.sh
+      args:
+        chdir: /root/tomcat/apache-tomcat-9.0.84/bin
+
+
+    - name: copy the war file to tomcat webapps directory
+      copy:
+        src: /root/live01/target/live.war
+        dest: /root/tomcat/apache-tomcat-9.0.84/webapps/ROOT.war
+        remote_src: yes 
+
+
+
+
+              
+
+
